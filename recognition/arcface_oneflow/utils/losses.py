@@ -2,15 +2,6 @@ import oneflow as flow
 from oneflow import nn
 
 
-def get_loss(name):
-    if name == "cosface":
-        return CosFace()
-    elif name == "arcface":
-        return ArcFace()
-    else:
-        raise ValueError()
-
-
 class CrossEntropyLoss_sbp(nn.Module):
     def __init__(self):
         super(CrossEntropyLoss_sbp, self).__init__()
