@@ -23,4 +23,4 @@ python3 -m oneflow.distributed.launch \
 --node_rank $NODE_RANK \
 --master_addr $MASTER_ADDR \
 --master_port $MASTER_PORT \
-train.py configs/ms1mv3_r50.py  --train_num 400 --batch_size 128 --graph --channel_last False --fp16 True 
+train.py configs/ms1mv3_r50.py  --train_num 400 --batch_size 128 --graph --channel_last True --fp16 True --use_gpu_decode
