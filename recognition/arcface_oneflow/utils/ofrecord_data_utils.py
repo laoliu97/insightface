@@ -16,12 +16,16 @@ class OFRecordDataLoader(nn.Module):
         placement: flow.placement = None,
         sbp: Union[flow.sbp.sbp, List[flow.sbp.sbp]] = None,
         channel_last=False,
+        use_gpu_decode=False,
     ):
         super().__init__()
         self.channel_last = channel_last
         output_layout = "NHWC" if self.channel_last else "NCHW"
         assert (ofrecord_root, mode)
-        self.train_record_reader = flow.nn.OfrecordReader(
+        self.batch_size = batch_size
+        self.total_batch_size = total_batch_size
+        self.dataset_size = dataset_size
+        self.ofrecord_reader = flow.nn.OfrecordReader(
             os.path.join(ofrecord_root, mode),
             batch_size=batch_size,
             data_part_num=data_part_num,
@@ -38,37 +42,45 @@ class OFRecordDataLoader(nn.Module):
         color_space = "RGB"
         height = 112
         width = 112
-
-        self.record_image_decoder = flow.nn.OFRecordImageDecoder(
-            "encoded", color_space=color_space
-        )
-        self.resize = (
-            flow.nn.image.Resize(target_size=[height, width])
-            if mode == "train"
-            else flow.nn.image.Resize(
-                resize_side="shorter", keep_aspect_ratio=True, target_size=112
-            )
-        )
-
-        self.flip = (
-            flow.nn.CoinFlip(batch_size=batch_size,
-                             placement=placement, sbp=sbp)
-            if mode == "train"
-            else None
-        )
-
         rgb_mean = [127.5, 127.5, 127.5]
         rgb_std = [127.5, 127.5, 127.5]
-        self.crop_mirror_norm = (
-            flow.nn.CropMirrorNormalize(
+        self.mode = mode
+        self.use_gpu_decode = use_gpu_decode
+        if self.mode == "train":
+            if self.use_gpu_decode:
+                self.bytesdecoder_img = flow.nn.OFRecordBytesDecoder("encoded")
+                self.image_decoder = flow.nn.OFRecordImageGpuDecoderRandomCropResize(
+                    target_width=112,
+                    target_height=112,
+                    random_area=[1, 1],
+                    random_aspect_ratio=[1, 1],
+                    num_workers=3
+                )
+            else:
+                self.image_decoder = flow.nn.OFRecordImageDecoder(
+                    "encoded", color_space=color_space
+                )
+
+            self.resize = flow.nn.image.Resize(
+                target_size=[height, width]
+            )
+            self.flip = flow.nn.CoinFlip(
+                batch_size=self.batch_size, placement=placement, sbp=sbp
+            )
+            self.crop_mirror_norm = flow.nn.CropMirrorNormalize(
                 color_space=color_space,
-                output_layout=output_layout,
                 mean=rgb_mean,
                 std=rgb_std,
                 output_dtype=flow.float,
             )
-            if mode == "train"
-            else flow.nn.CropMirrorNormalize(
+        else:
+            self.image_decoder = flow.nn.OFRecordImageDecoder(
+                "encoded", color_space=color_space
+            )
+            self.resize = flow.nn.image.Resize(
+                resize_side="shorter", keep_aspect_ratio=True, target_size=112
+            )
+            self.crop_mirror_norm = flow.nn.CropMirrorNormalize(
                 color_space=color_space,
                 output_layout=output_layout,
                 crop_h=0,
@@ -79,24 +91,33 @@ class OFRecordDataLoader(nn.Module):
                 std=rgb_std,
                 output_dtype=flow.float,
             )
-        )
 
-        self.batch_size = batch_size
-        self.total_batch_size = total_batch_size
-        self.dataset_size = dataset_size
+
 
     def __len__(self):
         return self.dataset_size // self.total_batch_size
 
     def forward(self):
-        train_record = self.train_record_reader()
-        label = self.record_label_decoder(train_record)
-        image_raw_buffer = self.record_image_decoder(train_record)
+        if self.mode == "train":
+            record = self.ofrecord_reader()
+            if self.use_gpu_decode:
+                encoded = self.bytesdecoder_img(record)
+                image = self.image_decoder(encoded)
+            else:
+                image_raw_bytes = self.image_decoder(record)
+                image = self.resize(image_raw_bytes)[0]
+                image = image.to("cuda")
 
-        image = self.resize(image_raw_buffer)[0]
-
-        rng = self.flip() if self.flip != None else None
-        image = self.crop_mirror_norm(image, rng)
+            label = self.record_label_decoder(record)
+            flip_code = self.flip()
+            flip_code = flip_code.to("cuda")
+            image = self.crop_mirror_norm(image, flip_code)
+        else:
+            record = self.ofrecord_reader()
+            image_raw_bytes = self.image_decoder(record)
+            label = self.record_label_decoder(record)
+            image = self.resize(image_raw_bytes)[0]
+            image = self.crop_mirror_norm(image)
 
         return image, label
 

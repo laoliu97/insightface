@@ -1,3 +1,4 @@
+from ast import arg
 import argparse
 import logging
 import os
@@ -20,6 +21,7 @@ def main(args):
     cfg.model_parallel = args.model_parallel
     cfg.train_num = args.train_num
     cfg.channel_last = args.channel_last
+    cfg.use_gpu_decode = args.use_gpu_decode
     rank = flow.env.get_rank()
     world_size = flow.env.get_world_size()
     placement = flow.env.all_device_placement("cuda")
@@ -63,6 +65,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--channel_last", type=str2bool, default="False", help="use NHWC",
     )
+    parser.add_argument("--use_gpu_decode",
+                        action="store_true", help="Use gpu decode,only support graph . CUDA_VERSION >= 10020 ",)
     parser.add_argument("--local_rank", type=int, default=0, help="local_rank")
     parser.add_argument("--load_path", type=str, default=None,
                         help="root dir of loading checkpoint")

@@ -54,6 +54,7 @@ def make_data_loader(args, mode, is_consistent=False, synthetic=False):
         placement=placement,
         sbp=sbp,
         channel_last=args.channel_last,
+        use_gpu_decode=args.use_gpu_decode
     )
     return ofrecord_data_loader
 
