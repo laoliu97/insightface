@@ -118,12 +118,12 @@ class Train_Module(flow.nn.Module):
                 output_size = int(cfg.num_classes / world_size)
                 self.fc = FC7(
                     input_size, output_size, cfg, partial_fc=cfg.partial_fc
-                ).to_consistent(placement=placement, sbp=flow.sbp.split(0))
+                ).to_global(placement=placement, sbp=flow.sbp.split(0))
             else:
-                self.fc = FC7(cfg.embedding_size, cfg.num_classes, cfg).to_consistent(
+                self.fc = FC7(cfg.embedding_size, cfg.num_classes, cfg).to_global(
                     placement=placement, sbp=flow.sbp.broadcast
                 )
-            self.backbone = backbone.to_consistent(
+            self.backbone = backbone.to_global(
                 placement=placement, sbp=flow.sbp.broadcast
             )
         else:
@@ -133,10 +133,9 @@ class Train_Module(flow.nn.Module):
     def forward(self, x, labels):
         x = self.backbone(x)
         if x.is_consistent:
-            x = x.to_consistent(sbp=flow.sbp.broadcast)
+            x = x.to_global(sbp=flow.sbp.broadcast)
         x = self.fc(x, labels)
         return x
-
 
 
 class Trainer(object):
@@ -245,7 +244,7 @@ class Trainer(object):
             for steps in range(one_epoch_steps):
                 self.global_step += 1
                 loss = train_graph()
-                loss = loss.to_consistent(
+                loss = loss.to_global(
                     sbp=flow.sbp.broadcast).to_local().numpy()
                 self.losses.update(loss, 1)
                 self.callback_logging(
@@ -260,9 +259,9 @@ class Trainer(object):
                 )
                 if self.global_step >= self.cfg.train_num:
                     exit(0)
-                if self.global_step == 600:
+                if self.global_step % 600 == 0:
                     self.callback_checkpoint(
-                self.global_step, epoch, self.train_module, is_consistent=True)
+                        self.global_step, epoch, self.train_module, is_consistent=True)
             self.callback_checkpoint(
                 self.global_step, epoch, self.train_module, is_consistent=True
             )

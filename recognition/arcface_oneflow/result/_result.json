@@ -1,0 +1,1 @@
+{"r50": {"1n1g": {"average_speed": 802.6, "batch_size_per_device": 128, "median_speed": 802.6, "speedup": 1.0}, "1n4g": {"average_speed": 2711.55, "batch_size_per_device": 128, "median_speed": 2711.55, "speedup": 3.38}, "1n8g": {"average_speed": 5350.95, "batch_size_per_device": 128, "median_speed": 5350.95, "speedup": 6.67}}}
