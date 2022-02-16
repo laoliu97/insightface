@@ -259,9 +259,9 @@ class Trainer(object):
                 )
                 if self.global_step >= self.cfg.train_num:
                     exit(0)
-                if self.global_step % 600 == 0:
-                    self.callback_checkpoint(
-                        self.global_step, epoch, self.train_module, is_consistent=True)
+                # if self.global_step % 600 == 0:
+                #     self.callback_checkpoint(
+                #         self.global_step, epoch, self.train_module, is_consistent=True)
             self.callback_checkpoint(
                 self.global_step, epoch, self.train_module, is_consistent=True
             )
