@@ -174,7 +174,7 @@ class CallBackModelCheckpoint(object):
 
             if is_consistent:
                 flow.save(backbone.state_dict(),
-                          path_module, consistent_dst_rank=0)
+                          path_module, global_dst_rank=0)
             else:
                 if self.rank == 0:
                     flow.save(backbone.state_dict(), path_module)

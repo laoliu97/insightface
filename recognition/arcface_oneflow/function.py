@@ -101,7 +101,7 @@ class FC7(flow.nn.Module):
             weight = self.weight
         weight = flow.nn.functional.normalize(weight, dim=1)
         x = flow.matmul(x, weight, transpose_b=True)
-        if x.is_consistent:
+        if x.is_global:
             return x, label
         else:
             return x
@@ -132,7 +132,7 @@ class Train_Module(flow.nn.Module):
 
     def forward(self, x, labels):
         x = self.backbone(x)
-        if x.is_consistent:
+        if x.is_global:
             x = x.to_global(sbp=flow.sbp.broadcast)
         x = self.fc(x, labels)
         return x
@@ -189,7 +189,7 @@ class Trainer(object):
         )
         # val
         self.callback_verification = CallBackVerification(
-            600, rank, cfg.val_targets, cfg.ofrecord_path, is_consistent=cfg.graph
+            6000, rank, cfg.val_targets, cfg.ofrecord_path, is_consistent=cfg.graph
         )
         # save checkpoint
         self.callback_checkpoint = CallBackModelCheckpoint(rank, cfg.output)
@@ -259,9 +259,6 @@ class Trainer(object):
                 )
                 if self.global_step >= self.cfg.train_num:
                     exit(0)
-                # if self.global_step % 600 == 0:
-                #     self.callback_checkpoint(
-                #         self.global_step, epoch, self.train_module, is_consistent=True)
             self.callback_checkpoint(
                 self.global_step, epoch, self.train_module, is_consistent=True
             )
