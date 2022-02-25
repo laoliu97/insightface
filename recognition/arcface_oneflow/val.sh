@@ -1,3 +1,3 @@
 #!/bin/bash
-
-python val.py configs/ms1mv3_r50 --model_path eager_test/epoch_0
+export ONEFLOW_DEBUG_MODE=True
+python val.py configs/ms1mv3_r50 --model_path work_dirs/webface600k_r50/epoch_19

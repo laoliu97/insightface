@@ -35,8 +35,8 @@ def convert_func(cfg, model_path, out_path,image_size):
         parameters = flow.load(model_path)
         for key, value in parameters.items():
             if "num_batches_tracked" not in key:
-                if key == "fc.weight":
-                    continue
+                # if key == "fc.weight":
+                #     continue
                 val = value
                 new_key = key.replace("backbone.", "")
                 new_parameters[new_key] = val
@@ -47,6 +47,7 @@ def convert_func(cfg, model_path, out_path,image_size):
 
 
 def main(args):
+
     logging.basicConfig(level=logging.NOTSET)
     logging.info(args.model_path)
     cfg = get_config(args.config)
@@ -65,3 +66,4 @@ if __name__ == "__main__":
     parser.add_argument('--out_path', type=str,
                         default="onnx_model", help='out path')
 
+    main(parser.parse_args())

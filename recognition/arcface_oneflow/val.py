@@ -13,21 +13,36 @@ def main(args):
     logging.basicConfig(level=logging.NOTSET)
     logging.info(args.model_path)
 
-    backbone = get_model(cfg.network, dropout=0.0, num_features=cfg.embedding_size).to(
+    backbone = get_model(cfg.network, dropout=0.0, num_features=cfg.embedding_size,channel_last=False).to(
         "cuda"
     )
     val_callback = CallBackVerification(
         1, 0, cfg.val_targets, cfg.ofrecord_path)
 
     state_dict = flow.load(args.model_path)
+   
+    # new_parameters = dict()
+    # for key, value in state_dict.items():
+    #     if "num_batches_tracked" not in key:
+    #         # if key == "fc.weight":
+    #         #     continue
+    #         new_key = key.replace("backbone.", "")
+    #         new_parameters[new_key] = value
 
     new_parameters = dict()
     for key, value in state_dict.items():
         if "num_batches_tracked" not in key:
-            if key == "fc.weight":
-                continue
+            # if key == "fc.weight":
+            #     continue
             new_key = key.replace("backbone.", "")
+            # print(key,value.shape)
+            # if  len(value.shape)==4:
+            #     # if key=="conv1.weight":
+            #     #     value=value[:,:,:,:3]
+
+            #     value=flow.transpose(value,1,3)
             new_parameters[new_key] = value
+            
 
     backbone.load_state_dict(new_parameters)
 

@@ -83,7 +83,7 @@ class CallBackVerification(object):
         else:
             if self.rank is 0 and num_update > 0 and num_update % self.frequent == 0:
                 backbone.eval()
-                self.ver_test(backbone, num_update)
+                self.ver_test(backbone_graph, num_update)
                 backbone.train()
 
 

@@ -71,6 +71,48 @@ def make_optimizer(args, model):
     return optimizer
 
 
+def WarmupPolynomialLR(
+    optimizer: flow.optim.Optimizer,
+    max_iter: int,
+    warmup_factor: float,
+    warmup_iter: int,
+    end_learning_rate: float = 0.0001,
+    power: float = 2.0,
+    cycle: bool = False,
+    warmup_method: str = "linear",
+):
+    """Create a schedule with a learning rate that decreases as a polynomial decay from
+    the initial lr set in the optimizer to end lr defined by `lr_end`,
+    after a warmup period during which it increases linearly from 0 to the
+    initial lr set in the optimizer.
+    Args:
+        optimizer (flow.optim.Optimizer): Wrapped optimizer.
+        max_iter (int): Total training iters.
+        warmup_factor (float): The warmup factor.
+        warmup_iter (int): The number of warmup steps.
+        end_learning_rate (float, optional): The final learning rate. Defaults to 0.0001.
+        power (float, optional): The power of polynomial. Defaults to 1.0.
+        cycle (bool, optional): If cycle is True, the scheduler will decay the learning rate
+            every decay steps. Defaults to False.
+        warmup_method (str, optional): The method of warmup, you can choose "linear" or "constant".
+            In linear mode, the multiplication factor starts with warmup_factor in the first
+            epoch and then inreases linearly to reach 1. Defaults to "linear".
+    """
+    polynomial_lr = flow.optim.lr_scheduler.PolynomialLR(
+        optimizer, steps=max_iter, end_learning_rate=end_learning_rate, power=power, cycle=cycle
+    )
+    if warmup_iter == 0:
+        print("warmup iters equals to zero, return PolynomialLR")
+        return polynomial_lr
+    warmup_polynomial_lr = flow.optim.lr_scheduler.WarmUpLR(
+        polynomial_lr,
+        warmup_factor=warmup_factor,
+        warmup_iters=warmup_iter,
+        warmup_method=warmup_method,
+    )
+    return warmup_polynomial_lr
+
+
 class FC7(flow.nn.Module):
     def __init__(self, embedding_size, num_classes, cfg, partial_fc=False, bias=False):
         super(FC7, self).__init__()
@@ -179,9 +221,11 @@ class Trainer(object):
 
         # lr_scheduler
         self.decay_step = self.cal_decay_step()
-        self.scheduler = flow.optim.lr_scheduler.MultiStepLR(
-            optimizer=self.optimizer, milestones=self.decay_step, gamma=0.1
-        )
+
+        self.scheduler = WarmupPolynomialLR(
+            optimizer=self.optimizer,max_iter=self.cfg.total_step, 
+            warmup_factor= 1/self.warmup_step,warmup_iter= self.warmup_step
+          )
 
         # log
         self.callback_logging = CallBackLogging(
@@ -259,8 +303,9 @@ class Trainer(object):
                 )
                 if self.global_step >= self.cfg.train_num:
                     exit(0)
+
             self.callback_checkpoint(
-                self.global_step, epoch, self.train_module, is_consistent=True
+                self.global_step, epoch, self.backbone, is_consistent=True
             )
 
     def train_eager(self):
