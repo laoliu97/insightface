@@ -221,11 +221,13 @@ class Trainer(object):
 
         # lr_scheduler
         self.decay_step = self.cal_decay_step()
-
-        self.scheduler = WarmupPolynomialLR(
-            optimizer=self.optimizer,max_iter=self.cfg.total_step, 
-            warmup_factor= 1/self.warmup_step,warmup_iter= self.warmup_step
-          )
+        self.scheduler = flow.optim.lr_scheduler.MultiStepLR(
+            optimizer=self.optimizer, milestones=self.decay_step, gamma=0.1
+        )
+        # self.scheduler = WarmupPolynomialLR(
+        #     optimizer=self.optimizer,max_iter=self.cfg.total_step, 
+        #     warmup_factor= 1/self.warmup_step,warmup_iter= self.warmup_step
+        #   )
 
         # log
         self.callback_logging = CallBackLogging(
@@ -301,9 +303,12 @@ class Trainer(object):
                 self.callback_verification(
                     self.global_step, self.train_module, val_graph
                 )
-                if self.global_step >= self.cfg.train_num:
-                    exit(0)
-
+            #     if self.global_step >= self.cfg.train_num:
+            #         exit(0)
+            #     if self.global_step ==200:
+            #         self.callback_checkpoint(
+            #     self.global_step, epoch, self.backbone, is_consistent=True
+            # )
             self.callback_checkpoint(
                 self.global_step, epoch, self.backbone, is_consistent=True
             )

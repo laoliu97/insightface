@@ -1,4 +1,6 @@
 #!/usr/bin/bash
+
+cd $INSIGHTFACE_DIR
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
 MODEL=${1:-r50}
 BZ_PER_DEVICE=${2:-128}
