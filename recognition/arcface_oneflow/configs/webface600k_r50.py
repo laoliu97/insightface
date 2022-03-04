@@ -20,7 +20,7 @@ config.batch_size = 128
 config.lr = 0.1  # batch size is 512
 
 config.dataset = "webface600k"
-config.ofrecord_path = "/data/disk1/zhuwang/face_data/WebFace260M_full/webface600k/ofrecord"
+config.ofrecord_path =  "/train_tmp/webface600k"
 config.ofrecord_part_num = 32
 config.num_classes = 617970
 config.num_image = 12720066
