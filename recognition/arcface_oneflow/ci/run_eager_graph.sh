@@ -8,7 +8,7 @@ BZ_PER_DEVICE=${2:-128}
 TEST_NUM=${5:-1}
 ITER_NUM=${6:-200}
 MODES=(graph eager)
-GPUS=("0" "0,1,2,3" "0,1,2,3,4,5,6,7")
+GPUS=("0" "0,1" "0,1,2,3")
 NODE_NUM=1
 
 for MODE in "${MODES[@]}"
