@@ -28,7 +28,7 @@ do
                 bash $SHELL_FOLDER/runner.sh ${MODEL} ${BZ_PER_DEVICE} ${ITER_NUM} $GPU $NODE_NUM $DTYPE  ${i} $MODE
                 echo " >>>>>>Finished Test Case $MODE, $DTYPE, $GPU, ${i} <<<<<<<"               
                 let i++
-                sleep 10s
+                sleep 20s
             done
         done
     done
