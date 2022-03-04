@@ -1,6 +1,7 @@
 #!/usr/bin/bash
+set -ex
 
-cd $INSIGHTFACE_DIR
+export PYTHONPATH=/data/disk1/zhuwang/speed_test/oneflow/python:$PYTHONPATH
 SHELL_FOLDER=$(dirname $(readlink -f "$0"))
 MODEL=${1:-r50}
 BZ_PER_DEVICE=${2:-128}

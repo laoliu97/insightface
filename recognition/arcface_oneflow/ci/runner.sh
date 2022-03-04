@@ -1,5 +1,6 @@
 #!/usr/bin/bash
-export MXNET_CUDNN_AUTOTUNE_DEFAULT=0
+set -ex
+
 MODEL=${1:-"r50"}
 BZ_PER_DEVICE=${2:-128}
 ITER_NUM=${3:-400}

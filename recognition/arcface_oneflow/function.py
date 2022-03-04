@@ -303,12 +303,8 @@ class Trainer(object):
                 self.callback_verification(
                     self.global_step, self.train_module, val_graph
                 )
-            #     if self.global_step >= self.cfg.train_num:
-            #         exit(0)
-            #     if self.global_step ==200:
-            #         self.callback_checkpoint(
-            #     self.global_step, epoch, self.backbone, is_consistent=True
-            # )
+                if self.global_step >= self.cfg.train_num:
+                    exit(0)
             self.callback_checkpoint(
                 self.global_step, epoch, self.backbone, is_consistent=True
             )
