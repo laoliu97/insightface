@@ -6,9 +6,9 @@ SHELL_FOLDER=$(dirname $(readlink -f "$0"))
 MODEL=${1:-r50}
 BZ_PER_DEVICE=${2:-128}
 TEST_NUM=${5:-1}
-ITER_NUM=${6:-200}
+ITER_NUM=${6:-1}
 MODES=(graph eager)
-GPUS=("0" "0,1" "0,1,2,3")
+GPUS=("0" "0,1")
 NODE_NUM=1
 
 for MODE in "${MODES[@]}"
