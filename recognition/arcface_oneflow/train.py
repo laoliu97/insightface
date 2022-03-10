@@ -20,6 +20,7 @@ def main(args):
     cfg.fp16 = args.fp16
     cfg.model_parallel = args.model_parallel
     cfg.train_num = args.train_num
+    cfg.log_frequent=args.log_frequent
     cfg.channel_last = args.channel_last
     cfg.use_gpu_decode = args.use_gpu_decode
     rank = flow.env.get_rank()
@@ -47,6 +48,9 @@ if __name__ == "__main__":
     parser.add_argument("config", type=str, help="py config file")
     parser.add_argument(
         "--batch_size", type=int, default=128, help="Train batch size per device",
+    )
+    parser.add_argument(
+        "--log_frequent", type=int, default=50, help="log print frequence",
     )
     parser.add_argument(
         "--fp16", type=str2bool, default="True", help="Whether to use fp16",

@@ -46,7 +46,7 @@ fi
 export CUDA_VISIBLE_DEVICES=${GPUS}
 
 MASTER_ADDR=127.0.0.1
-MASTER_PORT=17788
+MASTER_PORT=$((10000 + RANDOM % 12000))
 DEVICE_NUM_PER_NODE=${gpu_num_per_node}
 NUM_NODES=1
 NODE_RANK=0
@@ -64,6 +64,7 @@ if [ "$MODE" = "graph" ] ; then
     --batch_size ${BZ_PER_DEVICE} \
     --fp16 ${fp16} \
     --model_parallel $MODEL_PARALLEL \
+    --log_frequent 1 \
     --graph 2>&1 | tee ${log_file}
 else
     echo "Use eager mode"
@@ -78,8 +79,8 @@ else
     --batch_size ${BZ_PER_DEVICE} \
     --fp16 ${fp16} \
     --model_parallel $MODEL_PARALLEL \
+    --log_frequent 1 \
     2>&1 | tee ${log_file}
-
 fi
 
 echo "Writting log to $log_file"
