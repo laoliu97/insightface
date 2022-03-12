@@ -48,7 +48,7 @@ class IBasicBlock(nn.Module):
         self.bn1 = nn.BatchNorm2d(inplanes, eps=1e-05,)
         self.conv1 = conv3x3(inplanes, planes)
         self.bn2 = nn.BatchNorm2d(planes, eps=1e-05,)
-        self.prelu = nn.ReLU(planes)
+        self.prelu = nn.PReLU(planes)
         self.conv2 = conv3x3(planes, planes, stride)
         self.bn3 = nn.BatchNorm2d(planes, eps=1e-05,)
         self.downsample = downsample
@@ -114,7 +114,7 @@ class IResNet(nn.Module):
             channel_size, self.inplanes, kernel_size=3, stride=1, padding=1, bias=False
         )
         self.bn1 = nn.BatchNorm2d(self.inplanes, eps=1e-05)
-        self.prelu = nn.ReLU(self.inplanes)
+        self.prelu = nn.PReLU(self.inplanes)
         self.layer1 = self._make_layer(block, 64, layers[0], stride=2)
         self.layer2 = self._make_layer(
             block, 128, layers[1], stride=2, dilate=replace_stride_with_dilation[0]
@@ -131,7 +131,7 @@ class IResNet(nn.Module):
                             self.fc_scale, num_features)
         self.features = nn.BatchNorm1d(num_features, eps=1e-05)
         nn.init.constant_(self.features.weight, 1.0)
-        self.features.weight.requires_grad = True
+        self.features.weight.requires_grad = False
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
