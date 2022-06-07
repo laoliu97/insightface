@@ -1,6 +1,5 @@
-
 # InsightFace: 2D and 3D Face Analysis Project
-# 更新master尝试pr
+
 <div align="left">
   <img src="https://insightface.ai/assets/img/custom/logo3.jpg" width="240"/>
 </div>
